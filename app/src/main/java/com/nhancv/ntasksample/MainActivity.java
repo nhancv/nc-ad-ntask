@@ -1,44 +1,23 @@
 package com.nhancv.ntasksample;
 
-import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 
-import com.nhancv.ntask.NTask;
-import com.nhancv.ntask.NTaskManager;
+import com.nhancv.ntask.NTaskService;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EActivity;
+
+@EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    @AfterViews
+    protected void init() {
+        NTaskService.start(this);
+    }
 
-        NTaskManager taskManager = new NTaskManager();
-        taskManager.genData();
-        new Thread(() -> {
-            SystemClock.sleep(1000);
-            taskManager.updateActiveGroup(1);
-            System.out.println("Change ActiveGroup: " + taskManager.getLastGroupActive());
-
-            SystemClock.sleep(2000);
-            taskManager.updateActiveGroup(2);
-            System.out.println("Change ActiveGroup: " + taskManager.getLastGroupActive());
-
-        }).start();
-
-        while (taskManager.hasNext()) {
-
-            NTask nTask = taskManager.next();
-            System.out.println("Process: " + nTask.getId() + " - groupActive: " + nTask.getGroupPriority());
-
-            taskManager.popTask(nTask);
-            taskManager.refreshTaskList();
-
-            SystemClock.sleep(1000);
-
-        }
-
-
+    @Click(R.id.activity_main_bt_post)
+    protected void btPostClick() {
+        NTaskService.notify(this);
     }
 }

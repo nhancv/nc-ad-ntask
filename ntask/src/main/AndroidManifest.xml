@@ -1,5 +1,18 @@
-<manifest package="com.nhancv.ntask">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.nhancv.ntask"
+    >
 
     <application>
+        <service android:name=".NTaskService" />
+        <receiver android:name=".NTaskService$NReceiver">
+            <intent-filter>
+                <action
+                    android:name="com.nhancv.ntask.NTaskService"
+                    tools:ignore="BatteryLife"
+                    />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

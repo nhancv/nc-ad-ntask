@@ -28,11 +28,15 @@ public class NTaskManager implements java.util.Iterator<NTask> {
     private List<NTask> taskList = new ArrayList<>();
     private int lastGroupActive;
 
+    public static NTaskManager getInstance() {
+        return SingletonHelper.INSTANCE;
+    }
+
     public void genData() {
         taskList.clear();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             String groupId = UUID.randomUUID().toString();
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 3; j++) {
                 taskList.add(NTask.build(UUID.randomUUID().toString(),
                                          groupId, i == 0, i, j, "Item-" + j));
             }
@@ -59,6 +63,16 @@ public class NTaskManager implements java.util.Iterator<NTask> {
             }
         }
         return res;
+    }
+
+    public void postTast(NTask nTask) {
+        taskList.add(nTask);
+        Collections.sort(taskList, taskComparator);
+    }
+
+    public synchronized void completeTask(NTask task) {
+        popTask(task);
+        refreshTaskList();
     }
 
     public synchronized void popTask(NTask task) {
@@ -142,5 +156,9 @@ public class NTaskManager implements java.util.Iterator<NTask> {
 
     public int getLastGroupActive() {
         return lastGroupActive;
+    }
+
+    private static class SingletonHelper {
+        private static final NTaskManager INSTANCE = new NTaskManager();
     }
 }
