@@ -25,7 +25,6 @@ public class NTaskManager implements java.util.Iterator<NTask> {
 
         return 0;
     };
-
     private List<NTask> taskList = new ArrayList<>();
     private int lastGroupActive;
 
@@ -135,5 +134,13 @@ public class NTaskManager implements java.util.Iterator<NTask> {
     @Override
     public void forEachRemaining(Consumer<? super NTask> action) {
 
+    }
+
+    public List<NTask> getTaskList() {
+        return taskList;
+    }
+
+    public int getLastGroupActive() {
+        return lastGroupActive;
     }
 }

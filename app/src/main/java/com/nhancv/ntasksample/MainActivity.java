@@ -1,6 +1,7 @@
 package com.nhancv.ntasksample;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 
 import com.nhancv.ntask.NTask;
@@ -16,38 +17,24 @@ public class MainActivity extends AppCompatActivity {
         NTaskManager taskManager = new NTaskManager();
         taskManager.genData();
         new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("Change ActiveGroup: " + 1);
+            SystemClock.sleep(1000);
             taskManager.updateActiveGroup(1);
-            taskManager.showList();
+            System.out.println("Change ActiveGroup: " + taskManager.getLastGroupActive());
 
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("Change ActiveGroup: " + 2);
+            SystemClock.sleep(2000);
             taskManager.updateActiveGroup(2);
-            taskManager.showList();
+            System.out.println("Change ActiveGroup: " + taskManager.getLastGroupActive());
 
         }).start();
         while (taskManager.hasNext()) {
 
             NTask nTask = taskManager.next();
-            System.out.println("Process: " + nTask.getId());
+            System.out.println("Process: " + nTask.getId() + " - groupActive: " + nTask.getGroupPriority());
 
             taskManager.popTask(nTask);
             taskManager.refreshTaskList();
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            SystemClock.sleep(1000);
 
         }
 
