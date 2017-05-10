@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Change ActiveGroup: " + taskManager.getLastGroupActive());
 
         }).start();
+
         while (taskManager.hasNext()) {
 
             NTask nTask = taskManager.next();
