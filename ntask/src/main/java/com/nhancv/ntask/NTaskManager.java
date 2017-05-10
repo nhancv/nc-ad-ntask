@@ -1,6 +1,7 @@
 package com.nhancv.ntask;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -38,7 +39,7 @@ public class NTaskManager implements java.util.Iterator<NTask> {
             }
         }
 
-        taskList.sort(taskComparator);
+        Collections.sort(taskList, taskComparator);
 
         showList();
 
