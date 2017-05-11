@@ -25,17 +25,17 @@ public class NTaskManager {
         if (o1.isActive() && !o2.isActive()) return -1;
         if (o2.isActive() && !o1.isActive()) return 1;
 
-        if (o1.getGroupPriority() < o2.getGroupPriority()) return -1;
-        if (o2.getGroupPriority() < o1.getGroupPriority()) return 1;
+        if (o1.getGroupIndex() < o2.getGroupIndex()) return -1;
+        if (o2.getGroupIndex() < o1.getGroupIndex()) return 1;
 
-        if (o1.getItemPriority() < o2.getItemPriority()) return -1;
-        if (o2.getItemPriority() < o1.getItemPriority()) return 1;
+        if (o1.getItemIndex() < o2.getItemIndex()) return -1;
+        if (o2.getItemIndex() < o1.getItemIndex()) return 1;
 
         return 0;
     };
     private WeakReference<Context> contextWeakReference;
     private List<RTask> taskList = new ArrayList<>();
-    private int lastGroupActive;
+    private int lastGroupActiveIndex;
     private String serviceClassName;
 
     public NTaskManager() {
@@ -144,7 +144,7 @@ public class NTaskManager {
         for (RTask task : taskList) {
             if (task.isActive()) {
                 res.add(task);
-                lastGroupActive = task.getGroupPriority();
+                lastGroupActiveIndex = task.getGroupIndex();
             }
         }
         return res;
@@ -162,11 +162,23 @@ public class NTaskManager {
         }
     }
 
-    public synchronized void updateActiveGroup(int activeGroup) {
-        lastGroupActive = activeGroup;
+    public synchronized void updateActiveGroup(int groupIndex) {
+        lastGroupActiveIndex = groupIndex;
         for (RTask rTask : taskList) {
-            if (rTask.getGroupPriority() == activeGroup) {
+            if (rTask.getGroupIndex() == groupIndex) {
                 rTask.setActive(true);
+            } else {
+                rTask.setActive(false);
+            }
+            rTask.save();
+        }
+    }
+
+    public synchronized void updateActiveGroup(String groupId) {
+        for (RTask rTask : taskList) {
+            if (rTask.getGroupId().equals(groupId)) {
+                rTask.setActive(true);
+                lastGroupActiveIndex = rTask.getGroupIndex();
             } else {
                 rTask.setActive(false);
             }
@@ -206,11 +218,11 @@ public class NTaskManager {
 
         //Change active group
         if (hasNext()) {
-            lastGroupActive = taskList.get(0).getGroupPriority();
+            lastGroupActiveIndex = taskList.get(0).getGroupIndex();
         }
 
         //Update active with new group active
-        updateActiveGroup(lastGroupActive);
+        updateActiveGroup(lastGroupActiveIndex);
 
     }
 
@@ -233,8 +245,8 @@ public class NTaskManager {
         }
     }
 
-    public int getLastGroupActive() {
-        return lastGroupActive;
+    public int getLastGroupActiveIndex() {
+        return lastGroupActiveIndex;
     }
 
     private static class SingletonHelper {

@@ -18,7 +18,7 @@ public class TaskService extends AbstractTaskService {
         while (NTaskManager.hasNext()) {
             RTask rTask = NTaskManager.next();
             if (rTask != null) {
-                System.out.println("Process: " + rTask.getId() + " - groupActive: " + rTask.getGroupPriority());
+                System.out.println("Process: " + rTask.getId() + " - groupActive: " + rTask.getGroupIndex());
                 SystemClock.sleep(1000);
                 NTaskManager.completeTask(rTask);
             }

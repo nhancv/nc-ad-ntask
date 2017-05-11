@@ -15,8 +15,8 @@ public class RTask extends RealmObject {
     private String id;
     private String groupId;
     private boolean isActive;
-    private int groupPriority;
-    private int itemPriority;
+    private int groupIndex;
+    private int itemIndex;
     private String itemContent;
     private String updateTime;
 
@@ -26,8 +26,8 @@ public class RTask extends RealmObject {
         task.setId(id);
         task.setGroupId(groupId);
         task.setActive(isActive);
-        task.setGroupPriority(groupPriority);
-        task.setItemPriority(itemPriority);
+        task.setGroupIndex(groupPriority);
+        task.setItemIndex(itemPriority);
         task.setItemContent(itemContent);
         task.setUpdateTime(new Date().toString());
         return task;
@@ -57,20 +57,20 @@ public class RTask extends RealmObject {
         isActive = active;
     }
 
-    public int getGroupPriority() {
-        return groupPriority;
+    public int getGroupIndex() {
+        return groupIndex;
     }
 
-    public void setGroupPriority(int groupPriority) {
-        this.groupPriority = groupPriority;
+    public void setGroupIndex(int groupIndex) {
+        this.groupIndex = groupIndex;
     }
 
-    public int getItemPriority() {
-        return itemPriority;
+    public int getItemIndex() {
+        return itemIndex;
     }
 
-    public void setItemPriority(int itemPriority) {
-        this.itemPriority = itemPriority;
+    public void setItemIndex(int itemIndex) {
+        this.itemIndex = itemIndex;
     }
 
     public String getItemContent() {
@@ -95,8 +95,8 @@ public class RTask extends RealmObject {
                "id='" + id + '\'' +
                ", groupId='" + groupId + '\'' +
                ", isActive=" + isActive +
-               ", groupPriority=" + groupPriority +
-               ", itemPriority=" + itemPriority +
+               ", groupIndex=" + groupIndex +
+               ", itemIndex=" + itemIndex +
                ", itemContent='" + itemContent + '\'' +
                ", updateTime='" + updateTime + '\'' +
                '}';

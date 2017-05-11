@@ -1,6 +1,17 @@
 # Description
 ![Preview](img/diagram.jpg)
 
+## Models
+```
+[
+    GroupId-GroupIndex: [
+        {ItemId-ItemIndex-ItemContent},
+        ...
+    ]
+
+]
+```
+
 # Setup
 ![Preview](app/src/main/res/mipmap-hdpi/ic_launcher.png)
 [![](https://jitpack.io/v/nhancv/nc-android-ntask.svg)](https://jitpack.io/#nhancv/nc-android-ntask)
@@ -61,7 +72,7 @@ Post task request
 NTaskManager.postTask(RTask.build(...));
 ```
 
-#Libs
+# Libs
 - RxAndroid 1.2.1
 - RxJava 1.3.0
 - Realm 3.1.3
