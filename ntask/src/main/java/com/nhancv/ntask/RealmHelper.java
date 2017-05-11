@@ -59,7 +59,7 @@ class RealmHelper {
     /**
      * Export database to sdcard
      */
-    public static void exportDatabase(Context context) {
+    static void exportRealmFile(Context context) {
         try {
             File sd = Environment.getExternalStorageDirectory();
             File data = Environment.getDataDirectory();
@@ -76,12 +76,12 @@ class RealmHelper {
                     dst.transferFrom(src, 0, src.size());
                     src.close();
                     dst.close();
-                    Log.e(TAG, "exportDatabase: Db file has been backup on sdcard");
+                    Log.d(TAG, "exportRealmFile: Db file has been backup on sdcard");
                 } else {
-                    Log.e(TAG, "exportDatabase: current db not exists");
+                    Log.d(TAG, "exportRealmFile: current db not exists");
                 }
             } else {
-                Log.e(TAG, "exportDatabase: Sdcard can not Write");
+                Log.d(TAG, "exportRealmFile: Sdcard can not Write");
             }
         } catch (Exception e) {
             e.printStackTrace();

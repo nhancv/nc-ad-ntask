@@ -42,12 +42,16 @@ public class NTaskManager {
         processing = false;
     }
 
-    public static void init(Context context, String serviceClassName) {
+    public static void init(Context context) {
+        init(context, null);
+    }
+
+    public static void init(Context context, Class<?> serviceClassName) {
         //Build realm
         Realm.init(context);
         getInstance().setContextWeakReference(context);
         getInstance().initDataFromStorage();
-        getInstance().retrieveClassServiceName(serviceClassName);
+        getInstance().retrieveClassServiceName(serviceClassName != null ? serviceClassName.getName() : null);
         notify(context);
     }
 
@@ -92,6 +96,10 @@ public class NTaskManager {
         }
     }
 
+    public static void exportRealmFile(Context context) {
+        RealmHelper.exportRealmFile(context);
+    }
+
     public boolean isNull() {
         return contextWeakReference == null;
     }
@@ -108,8 +116,6 @@ public class NTaskManager {
         });
         sortTasks();
         showList();
-        //Backup for testing
-        RealmHelper.exportDatabase(contextWeakReference.get());
     }
 
     private void sortTasks() {Collections.sort(taskList, taskComparator);}
@@ -132,8 +138,6 @@ public class NTaskManager {
     }
 
     public synchronized void postTask(RTask rTask) {
-        System.out.println("postTask: " + rTask.getId() + " - groupActive: " + rTask.getGroupPriority());
-
         rTask.save();
         taskList.add(rTask);
         sortTasks();
@@ -174,7 +178,8 @@ public class NTaskManager {
             this.serviceClassName = serviceClassName;
             RService.build(serviceClassName).save();
         } else {
-            RService rService = RealmHelper.query(realm -> realm.where(RService.class).findFirst());
+            RService rService = RealmHelper
+                    .query(realm -> realm.copyFromRealm(realm.where(RService.class).findFirst()));
             if (rService != null) {
                 this.serviceClassName = rService.getClassName();
             }

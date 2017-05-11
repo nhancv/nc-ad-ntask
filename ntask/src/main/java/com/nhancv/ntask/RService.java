@@ -28,16 +28,8 @@ public class RService extends RealmObject {
 
     public void save() {
         RealmHelper.transaction(realm -> {
+            realm.delete(RService.class);
             realm.insertOrUpdate(this);
-        });
-    }
-
-    public void delete() {
-        RealmHelper.transaction(realm -> {
-            RTask rTask = realm.where(RTask.class).equalTo("className", getClassName()).findFirst();
-            if (rTask != null) {
-                rTask.deleteFromRealm();
-            }
         });
     }
 

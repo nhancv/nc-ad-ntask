@@ -3,7 +3,6 @@ package com.nhancv.ntasksample;
 import android.support.v7.app.AppCompatActivity;
 
 import com.nhancv.ntask.NTaskManager;
-import com.nhancv.ntask.NTaskService;
 import com.nhancv.ntask.RTask;
 
 import org.androidannotations.annotations.AfterViews;
@@ -22,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     @AfterViews
     protected void init() {
-        NTaskManager.init(this, NTaskService.class.getName());
+        NTaskManager.init(this, TaskService.class);
 
         sample = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
@@ -36,5 +35,8 @@ public class MainActivity extends AppCompatActivity {
     @Click(R.id.activity_main_bt_post)
     protected void btPostClick() {
         NTaskManager.getInstance().postTask(sample.get((index++) % sample.size()));
+
+        //Backup for testing
+        NTaskManager.exportRealmFile(this);
     }
 }
