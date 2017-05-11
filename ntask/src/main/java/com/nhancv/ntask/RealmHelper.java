@@ -2,7 +2,6 @@ package com.nhancv.ntask;
 
 import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,11 +16,10 @@ import io.realm.RealmConfiguration;
  */
 
 class RealmHelper {
-    private static final String TAG = RealmHelper.class.getSimpleName();
-    private static final String databaseName = "ntask";
+    private static final String DATABASE_NAME = "ntask";
 
     private static final RealmConfiguration realmConfig = new RealmConfiguration.Builder()
-            .name(databaseName)
+            .name(DATABASE_NAME)
             .deleteRealmIfMigrationNeeded()
             .build();
 
@@ -65,8 +63,8 @@ class RealmHelper {
             File data = Environment.getDataDirectory();
 
             if (sd.canWrite()) {
-                String currentDBPath = "//data//" + context.getPackageName() + "//files//" + databaseName;
-                String backupDBPath = databaseName + ".realm";
+                String currentDBPath = "//data//" + context.getPackageName() + "//files//" + DATABASE_NAME;
+                String backupDBPath = DATABASE_NAME + ".realm";
                 File currentDB = new File(data, currentDBPath);
                 File backupDB = new File(sd, backupDBPath);
 
@@ -76,12 +74,12 @@ class RealmHelper {
                     dst.transferFrom(src, 0, src.size());
                     src.close();
                     dst.close();
-                    Log.d(TAG, "exportRealmFile: Db file has been backup on sdcard");
+                    System.out.println("exportRealmFile: Db file has been backup on sdcard");
                 } else {
-                    Log.d(TAG, "exportRealmFile: current db not exists");
+                    System.out.println("exportRealmFile: current db not exists");
                 }
             } else {
-                Log.d(TAG, "exportRealmFile: Sdcard can not Write");
+                System.out.println("exportRealmFile: Sdcard can not Write");
             }
         } catch (Exception e) {
             e.printStackTrace();
