@@ -1,2 +1,2 @@
 # nc-android-ntask
-Android background task
+![Preview](img/diagram.jpg)

@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Click(R.id.activity_main_bt_post)
     protected void btPostClick() {
-        NTaskManager.getInstance().postTask(sample.get((index++) % sample.size()));
+        NTaskManager.postTask(sample.get((index++) % sample.size()));
 
         //Backup for testing
         NTaskManager.exportRealmFile(this);

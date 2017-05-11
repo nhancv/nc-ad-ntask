@@ -100,20 +100,33 @@ public class NTaskManager {
         RealmHelper.exportRealmFile(context);
     }
 
-    public boolean isNull() {
-        return contextWeakReference == null;
+    public synchronized static void postTask(RTask rTask) {
+        rTask.save();
+        getInstance().getTaskList().add(rTask);
+        getInstance().sortTasks();
+
+        if (getInstance().isNull()) {
+            notify(getInstance().getContextWeakReference().get());
+        } else {
+            Log.e(TAG, "postTask: context is null, need to call init first");
+        }
+    }
+
+    public WeakReference<Context> getContextWeakReference() {
+        return contextWeakReference;
     }
 
     public void setContextWeakReference(Context context) {
         this.contextWeakReference = new WeakReference<>(context);
     }
 
+    public boolean isNull() {
+        return contextWeakReference == null || contextWeakReference.get() == null;
+    }
+
     public void initDataFromStorage() {
         taskList.clear();
-        taskList = RealmHelper.query(realm -> {
-            RealmResults<RTask> realmResults = realm.where(RTask.class).findAll();
-            return realm.copyFromRealm(realmResults);
-        });
+        taskList = getTaskList(true);
         sortTasks();
         showList();
     }
@@ -135,18 +148,6 @@ public class NTaskManager {
             }
         }
         return res;
-    }
-
-    public synchronized void postTask(RTask rTask) {
-        rTask.save();
-        taskList.add(rTask);
-        sortTasks();
-
-        if (contextWeakReference != null && contextWeakReference.get() != null) {
-            notify(contextWeakReference.get());
-        } else {
-            Log.e(TAG, "postTask: context is null, need to call init first");
-        }
     }
 
     public synchronized void popTask(RTask task) {
@@ -218,7 +219,18 @@ public class NTaskManager {
     }
 
     public List<RTask> getTaskList() {
-        return taskList;
+        return getTaskList(false);
+    }
+
+    public List<RTask> getTaskList(boolean fromRealm) {
+        if (fromRealm) {
+            return RealmHelper.query(realm -> {
+                RealmResults<RTask> realmResults = realm.where(RTask.class).findAll();
+                return realm.copyFromRealm(realmResults);
+            });
+        } else {
+            return taskList;
+        }
     }
 
     public int getLastGroupActive() {
