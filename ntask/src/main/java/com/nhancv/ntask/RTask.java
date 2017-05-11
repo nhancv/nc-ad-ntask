@@ -9,7 +9,7 @@ import io.realm.annotations.PrimaryKey;
  * Created by nhancao on 5/10/17.
  */
 
-public class NTask extends RealmObject {
+public class RTask extends RealmObject {
 
     @PrimaryKey
     private String id;
@@ -20,9 +20,9 @@ public class NTask extends RealmObject {
     private String itemContent;
     private String updateTime;
 
-    public static NTask build(String id, String groupId, boolean isActive, int groupPriority, int itemPriority,
+    public static RTask build(String id, String groupId, boolean isActive, int groupPriority, int itemPriority,
                               String itemContent) {
-        NTask task = new NTask();
+        RTask task = new RTask();
         task.setId(id);
         task.setGroupId(groupId);
         task.setActive(isActive);
@@ -110,9 +110,9 @@ public class NTask extends RealmObject {
 
     public void delete() {
         RealmHelper.transaction(realm -> {
-            NTask nTask = realm.where(NTask.class).equalTo("id", getId()).findFirst();
-            if (nTask != null) {
-                nTask.deleteFromRealm();
+            RTask rTask = realm.where(RTask.class).equalTo("id", getId()).findFirst();
+            if (rTask != null) {
+                rTask.deleteFromRealm();
             }
         });
     }

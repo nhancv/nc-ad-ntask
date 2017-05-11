@@ -1,6 +1,7 @@
 package com.nhancv.ntask;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
@@ -19,8 +20,8 @@ import io.realm.RealmResults;
 public class NTaskManager {
 
     private static final String TAG = NTaskManager.class.getSimpleName();
-
-    public Comparator<NTask> taskComparator = (o1, o2) -> {
+    static boolean processing;
+    public Comparator<RTask> taskComparator = (o1, o2) -> {
         if (o1.isActive() && !o2.isActive()) return -1;
         if (o2.isActive() && !o1.isActive()) return 1;
 
@@ -33,45 +34,61 @@ public class NTaskManager {
         return 0;
     };
     private WeakReference<Context> contextWeakReference;
-    private List<NTask> taskList = new ArrayList<>();
+    private List<RTask> taskList = new ArrayList<>();
     private int lastGroupActive;
+    private String serviceClassName;
 
-    public static void init(Context context) {
+    public NTaskManager() {
+        processing = false;
+    }
+
+    public static void init(Context context, String serviceClassName) {
         //Build realm
         Realm.init(context);
         getInstance().setContextWeakReference(context);
         getInstance().initDataFromStorage();
-        NTaskService.notify(context);
+        getInstance().retrieveClassServiceName(serviceClassName);
+        notify(context);
     }
 
     public static NTaskManager getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
-    public synchronized static void completeTask(NTask task) {
+    public synchronized static void completeTask(RTask task) {
         getInstance().popTask(task);
         getInstance().refreshTaskList();
     }
 
     public synchronized static boolean hasNext() {
-        return getInstance().taskList.size() > 0;
+        return getInstance().getTaskList().size() > 0;
     }
 
-    public synchronized static NTask next() {
+    public synchronized static RTask next() {
         //Get active task
-        List<NTask> activeTask = getInstance().getActiveTask();
+        List<RTask> activeTask = getInstance().getActiveTask();
         if (activeTask.size() > 0) {
             return activeTask.get(0);
         }
         if (hasNext()) {
-            return getInstance().taskList.get(0);
+            return getInstance().getTaskList().get(0);
         }
         return null;
     }
 
     public synchronized static void remove() {
         if (hasNext()) {
-            getInstance().taskList.remove(0);
+            getInstance().getTaskList().remove(0);
+        }
+    }
+
+    public static void notify(Context context) {
+        if (!processing && getInstance().getServiceClassName() != null) {
+            try {
+                context.startService(new Intent(context, Class.forName(getInstance().getServiceClassName())));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -86,7 +103,7 @@ public class NTaskManager {
     public void initDataFromStorage() {
         taskList.clear();
         taskList = RealmHelper.query(realm -> {
-            RealmResults<NTask> realmResults = realm.where(NTask.class).findAll();
+            RealmResults<RTask> realmResults = realm.where(RTask.class).findAll();
             return realm.copyFromRealm(realmResults);
         });
         sortTasks();
@@ -98,14 +115,14 @@ public class NTaskManager {
     private void sortTasks() {Collections.sort(taskList, taskComparator);}
 
     public synchronized void showList() {
-        for (NTask nTask : taskList) {
-            System.out.println(nTask);
+        for (RTask rTask : taskList) {
+            System.out.println(rTask);
         }
     }
 
-    public synchronized List<NTask> getActiveTask() {
-        List<NTask> res = new ArrayList<>();
-        for (NTask task : taskList) {
+    public synchronized List<RTask> getActiveTask() {
+        List<RTask> res = new ArrayList<>();
+        for (RTask task : taskList) {
             if (task.isActive()) {
                 res.add(task);
                 lastGroupActive = task.getGroupPriority();
@@ -114,27 +131,26 @@ public class NTaskManager {
         return res;
     }
 
-    public synchronized void postTask(NTask nTask) {
-        System.out.println("postTask: " + nTask.getId() + " - groupActive: " + nTask.getGroupPriority());
+    public synchronized void postTask(RTask rTask) {
+        System.out.println("postTask: " + rTask.getId() + " - groupActive: " + rTask.getGroupPriority());
 
-        nTask.save();
-        taskList.add(nTask);
+        rTask.save();
+        taskList.add(rTask);
         sortTasks();
 
         if (contextWeakReference != null && contextWeakReference.get() != null) {
-            NTaskService.notify(contextWeakReference.get());
+            notify(contextWeakReference.get());
         } else {
             Log.e(TAG, "postTask: context is null, need to call init first");
         }
-
     }
 
-    public synchronized void popTask(NTask task) {
+    public synchronized void popTask(RTask task) {
         if (task == null) return;
         for (int i = 0; i < taskList.size(); i++) {
-            NTask nTask = taskList.get(i);
-            if (nTask.getId().equals(task.getId())) {
-                nTask.delete();
+            RTask rTask = taskList.get(i);
+            if (rTask.getId().equals(task.getId())) {
+                rTask.delete();
                 taskList.remove(i);
                 break;
             }
@@ -143,13 +159,25 @@ public class NTaskManager {
 
     public synchronized void updateActiveGroup(int activeGroup) {
         lastGroupActive = activeGroup;
-        for (NTask nTask : taskList) {
-            if (nTask.getGroupPriority() == activeGroup) {
-                nTask.setActive(true);
+        for (RTask rTask : taskList) {
+            if (rTask.getGroupPriority() == activeGroup) {
+                rTask.setActive(true);
             } else {
-                nTask.setActive(false);
+                rTask.setActive(false);
             }
-            nTask.save();
+            rTask.save();
+        }
+    }
+
+    public void retrieveClassServiceName(String serviceClassName) {
+        if (serviceClassName != null) {
+            this.serviceClassName = serviceClassName;
+            RService.build(serviceClassName).save();
+        } else {
+            RService rService = RealmHelper.query(realm -> realm.where(RService.class).findFirst());
+            if (rService != null) {
+                this.serviceClassName = rService.getClassName();
+            }
         }
     }
 
@@ -164,7 +192,7 @@ public class NTaskManager {
         }
 
         //Check is there any active group
-        for (NTask task : taskList) {
+        for (RTask task : taskList) {
             if (task.isActive()) {
                 return;
             }
@@ -180,7 +208,11 @@ public class NTaskManager {
 
     }
 
-    public List<NTask> getTaskList() {
+    public String getServiceClassName() {
+        return serviceClassName;
+    }
+
+    public List<RTask> getTaskList() {
         return taskList;
     }
 
