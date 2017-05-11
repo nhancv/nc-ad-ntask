@@ -114,7 +114,7 @@ public class NTaskManager {
         return res;
     }
 
-    public void postTask(NTask nTask) {
+    public synchronized void postTask(NTask nTask) {
         System.out.println("postTask: " + nTask.getId() + " - groupActive: " + nTask.getGroupPriority());
 
         nTask.save();
@@ -153,7 +153,7 @@ public class NTaskManager {
         }
     }
 
-    public synchronized void refreshTaskList() {
+    private synchronized void refreshTaskList() {
         /*
          * Mark active group task
          * Find other group task which lower priority

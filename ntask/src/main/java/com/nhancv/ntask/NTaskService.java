@@ -20,7 +20,11 @@ public class NTaskService extends IntentService {
 
     public static void notify(Context context) {
         if (!processing) {
-            context.startService(new Intent(context, NTaskService.class));
+            try {
+                context.startService(new Intent(context, Class.forName(NTaskService.class.getName())));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
