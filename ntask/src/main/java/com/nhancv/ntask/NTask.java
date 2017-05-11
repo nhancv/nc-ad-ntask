@@ -2,12 +2,16 @@ package com.nhancv.ntask;
 
 import java.util.Date;
 
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+
 /**
  * Created by nhancao on 5/10/17.
  */
 
-public class NTask  {
+public class NTask extends RealmObject {
 
+    @PrimaryKey
     private String id;
     private String groupId;
     private boolean isActive;
@@ -16,7 +20,8 @@ public class NTask  {
     private String itemContent;
     private String updateTime;
 
-    public static NTask build(String id, String groupId, boolean isActive, int groupPriority, int itemPriority, String itemContent) {
+    public static NTask build(String id, String groupId, boolean isActive, int groupPriority, int itemPriority,
+                              String itemContent) {
         NTask task = new NTask();
         task.setId(id);
         task.setGroupId(groupId);
@@ -95,5 +100,20 @@ public class NTask  {
                ", itemContent='" + itemContent + '\'' +
                ", updateTime='" + updateTime + '\'' +
                '}';
+    }
+
+    public void save() {
+        RealmHelper.transaction(realm -> {
+            realm.insertOrUpdate(this);
+        });
+    }
+
+    public void delete() {
+        RealmHelper.transaction(realm -> {
+            NTask nTask = realm.where(NTask.class).equalTo("id", getId()).findFirst();
+            if (nTask != null) {
+                nTask.deleteFromRealm();
+            }
+        });
     }
 }

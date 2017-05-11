@@ -1,17 +1,24 @@
 package com.nhancv.ntask;
 
+import android.content.Context;
+import android.util.Log;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
-import java.util.function.Consumer;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 /**
  * Created by nhancao on 5/10/17.
  */
 
-public class NTaskManager implements java.util.Iterator<NTask> {
+public class NTaskManager {
+
+    private static final String TAG = NTaskManager.class.getSimpleName();
 
     public Comparator<NTask> taskComparator = (o1, o2) -> {
         if (o1.isActive() && !o2.isActive()) return -1;
@@ -25,28 +32,70 @@ public class NTaskManager implements java.util.Iterator<NTask> {
 
         return 0;
     };
+    private WeakReference<Context> contextWeakReference;
     private List<NTask> taskList = new ArrayList<>();
     private int lastGroupActive;
+
+    public static void init(Context context) {
+        //Build realm
+        Realm.init(context);
+        getInstance().setContextWeakReference(context);
+        getInstance().initDataFromStorage();
+        NTaskService.notify(context);
+    }
 
     public static NTaskManager getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
-    public void genData() {
-        taskList.clear();
-        for (int i = 0; i < 2; i++) {
-            String groupId = UUID.randomUUID().toString();
-            for (int j = 0; j < 3; j++) {
-                taskList.add(NTask.build(UUID.randomUUID().toString(),
-                                         groupId, i == 0, i, j, "Item-" + j));
-            }
-        }
-
-        Collections.sort(taskList, taskComparator);
-
-        showList();
-
+    public synchronized static void completeTask(NTask task) {
+        getInstance().popTask(task);
+        getInstance().refreshTaskList();
     }
+
+    public synchronized static boolean hasNext() {
+        return getInstance().taskList.size() > 0;
+    }
+
+    public synchronized static NTask next() {
+        //Get active task
+        List<NTask> activeTask = getInstance().getActiveTask();
+        if (activeTask.size() > 0) {
+            return activeTask.get(0);
+        }
+        if (hasNext()) {
+            return getInstance().taskList.get(0);
+        }
+        return null;
+    }
+
+    public synchronized static void remove() {
+        if (hasNext()) {
+            getInstance().taskList.remove(0);
+        }
+    }
+
+    public boolean isNull() {
+        return contextWeakReference == null;
+    }
+
+    public void setContextWeakReference(Context context) {
+        this.contextWeakReference = new WeakReference<>(context);
+    }
+
+    public void initDataFromStorage() {
+        taskList.clear();
+        taskList = RealmHelper.query(realm -> {
+            RealmResults<NTask> realmResults = realm.where(NTask.class).findAll();
+            return realm.copyFromRealm(realmResults);
+        });
+        sortTasks();
+        showList();
+        //Backup for testing
+        RealmHelper.exportDatabase(contextWeakReference.get());
+    }
+
+    private void sortTasks() {Collections.sort(taskList, taskComparator);}
 
     public synchronized void showList() {
         for (NTask nTask : taskList) {
@@ -65,14 +114,19 @@ public class NTaskManager implements java.util.Iterator<NTask> {
         return res;
     }
 
-    public void postTast(NTask nTask) {
-        taskList.add(nTask);
-        Collections.sort(taskList, taskComparator);
-    }
+    public void postTask(NTask nTask) {
+        System.out.println("postTask: " + nTask.getId() + " - groupActive: " + nTask.getGroupPriority());
 
-    public synchronized void completeTask(NTask task) {
-        popTask(task);
-        refreshTaskList();
+        nTask.save();
+        taskList.add(nTask);
+        sortTasks();
+
+        if (contextWeakReference != null && contextWeakReference.get() != null) {
+            NTaskService.notify(contextWeakReference.get());
+        } else {
+            Log.e(TAG, "postTask: context is null, need to call init first");
+        }
+
     }
 
     public synchronized void popTask(NTask task) {
@@ -80,6 +134,7 @@ public class NTaskManager implements java.util.Iterator<NTask> {
         for (int i = 0; i < taskList.size(); i++) {
             NTask nTask = taskList.get(i);
             if (nTask.getId().equals(task.getId())) {
+                nTask.delete();
                 taskList.remove(i);
                 break;
             }
@@ -94,6 +149,7 @@ public class NTaskManager implements java.util.Iterator<NTask> {
             } else {
                 nTask.setActive(false);
             }
+            nTask.save();
         }
     }
 
@@ -102,6 +158,10 @@ public class NTaskManager implements java.util.Iterator<NTask> {
          * Mark active group task
          * Find other group task which lower priority
          */
+
+        if (!hasNext()) {
+            initDataFromStorage();
+        }
 
         //Check is there any active group
         for (NTask task : taskList) {
@@ -117,36 +177,6 @@ public class NTaskManager implements java.util.Iterator<NTask> {
 
         //Update active with new group active
         updateActiveGroup(lastGroupActive);
-
-    }
-
-    @Override
-    public synchronized boolean hasNext() {
-        return taskList.size() > 0;
-    }
-
-    @Override
-    public synchronized NTask next() {
-        //Get active task
-        List<NTask> activeTask = getActiveTask();
-        if (activeTask.size() > 0) {
-            return activeTask.get(0);
-        }
-        if (hasNext()) {
-            return taskList.get(0);
-        }
-        return null;
-    }
-
-    @Override
-    public synchronized void remove() {
-        if (hasNext()) {
-            taskList.remove(0);
-        }
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super NTask> action) {
 
     }
 
