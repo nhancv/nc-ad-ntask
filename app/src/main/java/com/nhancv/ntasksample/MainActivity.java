@@ -27,15 +27,20 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 2; i++) {
             String groupId = UUID.randomUUID().toString();
             for (int j = 0; j < 3; j++) {
-                sample.add(RTask.build(UUID.randomUUID().toString(), groupId, i == 0, i, j, "Item-" + j));
+                sample.add(RTask.build(UUID.randomUUID().toString(), groupId, "Item-" + j).save());
             }
         }
+        NTaskManager.getInstance().showList();
+
     }
 
     @Click(R.id.activity_main_bt_post)
     protected void btPostClick() {
         NTaskManager.postTask(sample.get((index++) % sample.size()));
+    }
 
+    @Click(R.id.activity_main_bt_get_db)
+    protected void btGetDbClick() {
         //Backup for testing
         NTaskManager.exportRealmFile(this);
     }

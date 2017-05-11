@@ -10,6 +10,7 @@ import io.realm.annotations.PrimaryKey;
  */
 
 public class RTask extends RealmObject {
+    private static final String TAG = RTask.class.getSimpleName();
 
     @PrimaryKey
     private String id;
@@ -19,6 +20,43 @@ public class RTask extends RealmObject {
     private int itemIndex;
     private String itemContent;
     private String updateTime;
+
+    public static RTask build(String id, String groupId,
+                              String itemContent) {
+        boolean active = false;
+        Integer groupIndex;
+        RTask tmp = RealmHelper
+                .query(realm -> {
+                    RTask res = realm.where(RTask.class).equalTo("groupId", groupId).findFirst();
+                    if (res != null) {
+                        return realm.copyFromRealm(res);
+                    }
+                    return null;
+                });
+        if (tmp != null) {
+            groupIndex = tmp.getGroupIndex();
+            if (tmp.isActive) active = true;
+        } else {
+            groupIndex = RealmHelper
+                    .query(realm -> {
+                        Number number = realm.where(RTask.class).max("groupIndex");
+                        return number == null ? 0 : (number.intValue() + 1);
+                    });
+            if (groupIndex != null && groupIndex == 0) {
+                active = true;
+            }
+        }
+
+        Integer itemIndex = RealmHelper
+                .query(realm -> {
+                    Number number = realm.where(RTask.class).equalTo("groupId", groupId).max("itemIndex");
+                    return number == null ? 0 : (number.intValue() + 1);
+                });
+
+        return build(id, groupId, active, groupIndex == null ? 0 : groupIndex,
+                     itemIndex == null ? 0 : itemIndex,
+                     itemContent);
+    }
 
     public static RTask build(String id, String groupId, boolean isActive, int groupIndex, int itemIndex,
                               String itemContent) {
@@ -102,10 +140,11 @@ public class RTask extends RealmObject {
                '}';
     }
 
-    public void save() {
+    public RTask save() {
         RealmHelper.transaction(realm -> {
             realm.insertOrUpdate(this);
         });
+        return this;
     }
 
     public void delete() {

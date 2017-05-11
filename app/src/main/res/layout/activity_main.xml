@@ -9,7 +9,16 @@
         android:id="@+id/activity_main_bt_post"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/activity_main_bt_get_db"
         android:layout_centerInParent="true"
         android:text="Post"
+        />
+
+    <Button
+        android:id="@+id/activity_main_bt_get_db"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Get Realm files"
         />
 </RelativeLayout>
