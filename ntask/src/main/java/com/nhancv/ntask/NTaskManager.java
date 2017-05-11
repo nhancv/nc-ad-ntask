@@ -105,7 +105,7 @@ public class NTaskManager {
         getInstance().getTaskList().add(rTask);
         getInstance().sortTasks();
 
-        if (getInstance().isNull()) {
+        if (!getInstance().isNull()) {
             notify(getInstance().getContextWeakReference().get());
         } else {
             Log.e(TAG, "postTask: context is null, need to call init first");
