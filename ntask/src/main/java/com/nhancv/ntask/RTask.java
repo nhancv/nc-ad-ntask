@@ -20,14 +20,14 @@ public class RTask extends RealmObject {
     private String itemContent;
     private String updateTime;
 
-    public static RTask build(String id, String groupId, boolean isActive, int groupPriority, int itemPriority,
+    public static RTask build(String id, String groupId, boolean isActive, int groupIndex, int itemIndex,
                               String itemContent) {
         RTask task = new RTask();
         task.setId(id);
         task.setGroupId(groupId);
         task.setActive(isActive);
-        task.setGroupIndex(groupPriority);
-        task.setItemIndex(itemPriority);
+        task.setGroupIndex(groupIndex);
+        task.setItemIndex(itemIndex);
         task.setItemContent(itemContent);
         task.setUpdateTime(new Date().toString());
         return task;
