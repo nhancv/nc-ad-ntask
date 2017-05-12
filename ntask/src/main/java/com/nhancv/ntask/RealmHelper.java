@@ -20,6 +20,7 @@ class RealmHelper {
 
     private static final RealmConfiguration realmConfig = new RealmConfiguration.Builder()
             .name(DATABASE_NAME)
+            .modules(new RTaskModule())
             .deleteRealmIfMigrationNeeded()
             .build();
 
