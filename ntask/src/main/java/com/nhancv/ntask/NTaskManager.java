@@ -41,14 +41,18 @@ public class NTaskManager {
     }
 
     public static void init(Context context) {
-        init(context, null);
+        init(context, (String) null);
     }
 
     public static void init(Context context, Class<?> serviceClassName) {
+        init(context, serviceClassName != null ? serviceClassName.getName() : null);
+    }
+
+    public static void init(Context context, String serviceClassName) {
         //Build realm
         Realm.init(context);
         getInstance().setContextWeakReference(context);
-        getInstance().retrieveClassServiceName(serviceClassName != null ? serviceClassName.getName() : null);
+        getInstance().retrieveClassServiceName(serviceClassName);
         notify(context);
     }
 
@@ -58,6 +62,11 @@ public class NTaskManager {
 
     public synchronized static void completeTask(RTask task) {
         getInstance().popTask(task);
+    }
+
+    public synchronized static void markTaskFailed(RTask task) {
+        task.setStatus(-1);
+        task.save();
     }
 
     public synchronized static boolean hasNext() {
@@ -117,15 +126,22 @@ public class NTaskManager {
     }
 
     public synchronized void updateActiveGroup(String groupId) {
-        for (RTask rTask : getTaskList()) {
-            if (rTask.getGroupId().equals(groupId)) {
-                rTask.setActive(true);
-                lastGroupIdActive = rTask.getGroupId();
-            } else {
-                rTask.setActive(false);
+        if (groupId == null) {
+            List<RTask> taskList = getTaskList();
+            if (taskList != null && taskList.size() > 0) {
+                groupId = taskList.get(0).getGroupId();
             }
-            rTask.save();
         }
+        if (groupId != null)
+            for (RTask rTask : getTaskList()) {
+                if (rTask.getGroupId().equals(groupId)) {
+                    rTask.setActive(true);
+                    lastGroupIdActive = rTask.getGroupId();
+                } else {
+                    rTask.setActive(false);
+                }
+                rTask.save();
+            }
     }
 
     public synchronized void showList() {
@@ -139,9 +155,18 @@ public class NTaskManager {
         task.delete();
     }
 
-    public synchronized long getCount() {
-        Long count = RealmHelper.query(realm -> realm.where(RTask.class).count());
+    public synchronized long getCountByActiveStatus() {
+        return getCountByActiveStatus(0);
+    }
+
+    public synchronized long getCountByActiveStatus(int status) {
+        Long count = RealmHelper
+                .query(realm -> realm.where(RTask.class).equalTo("isActive", true).equalTo("status", status).count());
         return count == null ? 0 : count;
+    }
+
+    public synchronized long getCount() {
+        return getCountByStatus(0);
     }
 
     public String getServiceClassName() {
@@ -150,7 +175,8 @@ public class NTaskManager {
 
     public synchronized List<RTask> getActiveTask() {
         return RealmHelper.query(realm -> {
-            RealmResults<RTask> realmResults = realm.where(RTask.class).equalTo("isActive", true).findAll();
+            RealmResults<RTask> realmResults = realm.where(RTask.class).equalTo("isActive", true).equalTo("status", 0)
+                                                    .findAll();
             List<RTask> tasks = realm.copyFromRealm(realmResults);
             Collections.sort(tasks, taskComparator);
             if (tasks.size() > 0) {
@@ -161,11 +187,35 @@ public class NTaskManager {
     }
 
     public synchronized List<RTask> getTaskList() {
+        return getTaskList(0);
+    }
+
+    public synchronized List<RTask> getTaskList(int status) {
         return RealmHelper.query(realm -> {
-            RealmResults<RTask> realmResults = realm.where(RTask.class).findAll();
+            RealmResults<RTask> realmResults = realm.where(RTask.class).equalTo("status", status).findAll();
             List<RTask> tasks = realm.copyFromRealm(realmResults);
             Collections.sort(tasks, taskComparator);
             return tasks;
+        });
+    }
+
+    public synchronized long getCountByErrorStatus() {
+        return getCountByStatus(-1);
+    }
+
+    public synchronized long getCountByStatus(int status) {
+        Long count = RealmHelper.query(realm -> realm.where(RTask.class).equalTo("status", status).count());
+        return count == null ? 0 : count;
+    }
+
+    public synchronized void resetStatusQueue() {
+        RealmHelper.transaction(realm -> {
+            RealmResults<RTask> realmResults = realm.where(RTask.class).notEqualTo("status", 0).findAll();
+            List<RTask> tasks = realm.copyFromRealm(realmResults);
+            for (RTask task : tasks) {
+                task.setStatus(0);
+            }
+            realm.insertOrUpdate(tasks);
         });
     }
 

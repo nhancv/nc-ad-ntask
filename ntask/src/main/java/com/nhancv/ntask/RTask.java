@@ -20,6 +20,7 @@ public class RTask extends RealmObject {
     private int itemIndex;
     private String itemContent;
     private String updateTime;
+    private int status;
 
     public static RTask build(String id, String groupId,
                               String itemContent) {
@@ -127,9 +128,17 @@ public class RTask extends RealmObject {
         this.updateTime = updateTime;
     }
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
-        return "NTask{" +
+        return "RTask{" +
                "id='" + id + '\'' +
                ", groupId='" + groupId + '\'' +
                ", isActive=" + isActive +
@@ -137,6 +146,7 @@ public class RTask extends RealmObject {
                ", itemIndex=" + itemIndex +
                ", itemContent='" + itemContent + '\'' +
                ", updateTime='" + updateTime + '\'' +
+               ", status=" + status +
                '}';
     }
 
