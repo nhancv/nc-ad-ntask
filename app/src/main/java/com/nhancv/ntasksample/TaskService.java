@@ -27,7 +27,7 @@ public class TaskService extends AbstractTaskService {
             RTask rTask = NTaskManager.next();
             if (rTask != null) {
                 System.out.println("Process: " + rTask.getId() + " - groupActive: " + rTask.getGroupIndex()
-                                   + " - status: " + rTask.getStatus());
+                                   + " - status: " + rTask.getStatus() + " - retryTime: " + rTask.getRetryTime());
                 SystemClock.sleep(500);
                 if (random.nextBoolean()) {
                     NTaskManager.markTaskFailed(rTask);

@@ -214,6 +214,7 @@ public class NTaskManager {
             List<RTask> tasks = realm.copyFromRealm(realmResults);
             for (RTask task : tasks) {
                 task.setStatus(0);
+                task.setRetryTime(task.getRetryTime() + 1);
             }
             realm.insertOrUpdate(tasks);
         });

@@ -21,6 +21,7 @@ public class RTask extends RealmObject {
     private String itemContent;
     private String updateTime;
     private int status;
+    private int retryTime;
 
     public static RTask build(String id, String groupId,
                               String itemContent) {
@@ -136,6 +137,14 @@ public class RTask extends RealmObject {
         this.status = status;
     }
 
+    public int getRetryTime() {
+        return retryTime;
+    }
+
+    public void setRetryTime(int retryTime) {
+        this.retryTime = retryTime;
+    }
+
     @Override
     public String toString() {
         return "RTask{" +
@@ -147,6 +156,7 @@ public class RTask extends RealmObject {
                ", itemContent='" + itemContent + '\'' +
                ", updateTime='" + updateTime + '\'' +
                ", status=" + status +
+               ", retryTime=" + retryTime +
                '}';
     }
 
