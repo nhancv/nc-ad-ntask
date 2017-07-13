@@ -69,6 +69,11 @@ public class NTaskManager {
         task.save();
     }
 
+    public synchronized static void refreshTask(RTask task) {
+        task.setStatus(0);
+        task.save();
+    }
+
     public synchronized static boolean hasNext() {
         return getInstance().getCount() > 0;
     }
@@ -196,6 +201,14 @@ public class NTaskManager {
             List<RTask> tasks = realm.copyFromRealm(realmResults);
             Collections.sort(tasks, taskComparator);
             return tasks;
+        });
+    }
+
+    public synchronized RTask getTask(String taskId) {
+        return RealmHelper.query(realm -> {
+            RTask realmResult = realm.where(RTask.class).equalTo("id", taskId).findFirst();
+            if (realmResult != null) return realm.copyFromRealm(realmResult);
+            return null;
         });
     }
 
