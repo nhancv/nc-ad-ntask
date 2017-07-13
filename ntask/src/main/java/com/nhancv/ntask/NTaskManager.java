@@ -101,6 +101,10 @@ public class NTaskManager {
     public synchronized static void postTask(RTask rTask) {
         rTask.save();
 
+        restart();
+    }
+
+    public static void restart() {
         if (!getInstance().isNull()) {
             notify(getInstance().getContextWeakReference().get());
         } else {
